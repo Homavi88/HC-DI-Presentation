@@ -246,6 +246,8 @@ body.notes-open .notes-panel{transform:none}
 .pchart-h b{font-size:17px;font-weight:800;letter-spacing:.02em;color:#0d1b2a}
 .pchart-h .pcap{font-size:13.5px;font-weight:600;color:#8a99ab}
 .pcap .dot{display:inline-block;width:11px;height:11px;border-radius:3px;margin:0 6px 0 2px;vertical-align:-1px}
+.pcap .dg{background:#0a9e5c}
+.pcap .dy{background:#e0a800}
 .pcap .ds{background:#d64545}
 .pcap .dr{background:#154a82}
 .pm-tog{display:inline-flex;align-items:center;gap:8px}
@@ -448,7 +450,7 @@ body.notes-open .notes-panel{transform:none}
     <p class="lead" id="s6lead">Октябрь 2026: 15 машин, 12 вопросов — где концентрируются провалы (принцип Парето).</p>
     <div class="pareto-wrap scroll">
       <div class="pchart">
-        <div class="pchart-h"><b id="pmTitle">Строгий HC DI % по машинам · октябрь 2026</b><span class="pm-tog"><span class="pm-lbl" id="pmMode">Строгий</span><label class="switch"><input type="checkbox" id="mstrict" checked><span class="sl"></span></label></span><span class="pcap" id="pmCap">Парк: 9% · ≥30% · 15–29% · &lt;15%</span></div>
+        <div class="pchart-h"><b id="pmTitle">Строгий HC DI % по машинам · октябрь 2026</b><span class="pm-tog"><span class="pm-lbl" id="pmMode">Строгий</span><label class="switch"><input type="checkbox" id="mstrict" checked><span class="sl"></span></label></span><span class="pcap" id="pmCap">Парк: 9% · <span class="dot dg"></span>≥80% · <span class="dot dy"></span>50–79% · <span class="dot ds"></span>&lt;50%</span></div>
         <div class="pchart-body" data-chart="m"></div>
       </div>
       <div class="pchart">
@@ -780,6 +782,8 @@ if(cv&&cv.getContext){
     s6e=document.getElementById("s6foot");if(s6e)s6e.textContent="HC DI · Secondary · "+meta6.period+" · "+meta6.nmach+" машин · "+(meta6.months===1?"1 месячный отчёт":meta6.months+" месячных отчётов");
     s6e=document.getElementById("pqCap");if(s6e)s6e.innerHTML="Топ-4 вопроса — "+meta6.top4Pct+"% всех провалов ("+pfmt(meta6.totalFails)+")";
     var hostM=s6sec.querySelector('[data-chart="m"]');
+    function pctColor(p){return p>=80?"#0a9e5c":(p>=50?"#e0a800":"#d64545")}
+    function pctCap(park){return "Парк: "+park+"% · <span class=\"dot dg\"></span>≥80% · <span class=\"dot dy\"></span>50–79% · <span class=\"dot ds\"></span>&lt;50%"}
     function renderM(){
       var sw=document.getElementById("mstrict");
       var s=!sw||sw.checked;
@@ -790,12 +794,12 @@ if(cv&&cv.getContext){
         for(mi=0;mi<PARETO.m.length;mi++)if(PARETO.m[mi][1]>smax)smax=PARETO.m[mi][1];
         var sstep=smax<=60?10:20,symax=Math.ceil(smax/sstep)*sstep,st=[],tv;
         for(tv=0;tv<=symax;tv+=sstep)st.push(tv);
-        cfg={data:PARETO.m,ymin:0,ymax:symax,ticks:st,col:function(p){return p>=30?"#0a9e5c":(p>=15?"#154a82":"#d64545")},
-             title:"Строгий HC DI % по машинам · "+meta.periodLabel,cap:"Парк: "+meta.parkStrict+"% · ≥30% · 15–29% · &lt;15%",mode:"Строгий"};
+        cfg={data:PARETO.m,ymin:0,ymax:symax,ticks:st,col:pctColor,
+             title:"Строгий HC DI % по машинам · "+meta.periodLabel,cap:pctCap(meta.parkStrict),mode:"Строгий"};
       }else{
-        cfg={data:PARETO.mP,ymin:60,ymax:100,ticks:[60,70,80,90,100],col:function(p){return p>=90?"#0a9e5c":(p>=77?"#154a82":"#d64545")},
+        cfg={data:PARETO.mP,ymin:60,ymax:100,ticks:[60,70,80,90,100],col:pctColor,
              title:"HC DI % по машинам · "+meta.periodLabel,
-             cap:"Парк: "+meta.parkReg+"% · ≥90% · 77–89% · &lt;77%",mode:"Обычный"};
+             cap:pctCap(meta.parkReg),mode:"Обычный"};
       }
       hostM.innerHTML="";
       buildPareto(hostM,{data:cfg.data,h:330,mb:44,bw:58,ymin:cfg.ymin,ymax:cfg.ymax,ticks:cfg.ticks,
